@@ -30,7 +30,7 @@ sendBtn.addEventListener('click', async () => {
     try {
         // console.log(JSON.stringify({ message }))
         reqMsg(message)
-        const response = await fetch('http://localhost:8080/api/message', {
+        const response = await fetch('/api/message', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

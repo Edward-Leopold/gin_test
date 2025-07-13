@@ -4,17 +4,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
-	"io"
+
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-    // Создаем новый экземпляр роутера
-    r := gin.Default()
+	// Создаем новый экземпляр роутера
+	r := gin.Default()
 
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -27,18 +27,17 @@ func main() {
 		c.Next()
 	})
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	apiKey := os.Getenv("API_KEY")
+	if apiKey == "" {
+		log.Fatal("FATAL: API_KEY environment variable not set. Check your .env file and docker-compose.yaml configuration.")
 	}
 
-	apiKey := os.Getenv("API_KEY")
-	fmt.Println("API Key:", apiKey)
+	fmt.Println("Successfully loaded API Key.")
 
-    // Определяем маршрут для главной страницы
-    r.GET("/", func(c *gin.Context) {
-        c.String(http.StatusOK, "Привет, Gin!")
-    })
+	// Определяем маршрут для главной страницы
+	r.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Привет, Gin!")
+	})
 
 	r.GET("/user/:name", func(c *gin.Context) {
 		name := c.Param("name") // Получаем параметр name из URL
@@ -64,13 +63,13 @@ func main() {
 		})
 	})
 
-	type Message struct{
+	type Message struct {
 		Message string `json"message"`
 	}
 
-	r.POST("/api/message", func(c *gin.Context){
+	r.POST("/api/message", func(c *gin.Context) {
 		var msg Message
-		
+
 		if err := c.ShouldBindJSON(&msg); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -90,7 +89,7 @@ func main() {
 		requestBody := bytes.NewBuffer(postBody)
 
 		req, err := http.NewRequest(
-			"POST", 
+			"POST",
 			"https://caila.io/api/mlpgate/account/just-ai/model/openai-proxy/predict",
 			requestBody,
 		)
@@ -98,7 +97,7 @@ func main() {
 			log.Fatalf("Error creating request: %v", err)
 		}
 
-		req.Header.Set("MLP-API-KEY", apiKey)  
+		req.Header.Set("MLP-API-KEY", apiKey)
 		req.Header.Set("Content-Type", "application/json")
 
 		client := &http.Client{}
@@ -116,10 +115,9 @@ func main() {
 		sb := string(body)
 		log.Printf(sb)
 
-
 		c.JSON(http.StatusOK, sb)
 	})
 
-    // Запускаем сервер на порту 8080
-    r.Run(":8080")
+	// Запускаем сервер на порту 8080
+	r.Run(":8080")
 }

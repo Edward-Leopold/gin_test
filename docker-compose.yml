@@ -1,0 +1,20 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gin_test_backend
+    env_file:
+      - .env
+    environment:
+      - GIN_MODE=release
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    container_name: gin_test_frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
